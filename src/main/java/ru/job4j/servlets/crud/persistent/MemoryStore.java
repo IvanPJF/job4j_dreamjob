@@ -5,6 +5,7 @@ import ru.job4j.servlets.crud.model.User;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class for storing data in memory.
@@ -17,6 +18,7 @@ public class MemoryStore implements IStore {
 
     private static final MemoryStore PERSISTENCE = new MemoryStore();
     private final Map<Integer, User> storeMap = new ConcurrentHashMap<>();
+    private final static AtomicInteger NEXT_ID = new AtomicInteger();
 
     private MemoryStore() {
     }
@@ -27,6 +29,7 @@ public class MemoryStore implements IStore {
 
     @Override
     public User add(User user) {
+        user.setId(NEXT_ID.getAndIncrement());
         return this.storeMap.put(user.getId(), user);
     }
 

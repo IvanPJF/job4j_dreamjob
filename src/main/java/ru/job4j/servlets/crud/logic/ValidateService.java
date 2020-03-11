@@ -1,8 +1,8 @@
 package ru.job4j.servlets.crud.logic;
 
 import ru.job4j.servlets.crud.model.User;
+import ru.job4j.servlets.crud.persistent.DBStore;
 import ru.job4j.servlets.crud.persistent.IStore;
-import ru.job4j.servlets.crud.persistent.MemoryStore;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -17,7 +17,7 @@ import java.util.Objects;
 public class ValidateService {
 
     private static final ValidateService INSTANCE = new ValidateService();
-    private final IStore persistence = MemoryStore.getInstance();
+    private final IStore persistence = DBStore.getInstance();
 
     private ValidateService() {
     }
@@ -29,7 +29,7 @@ public class ValidateService {
     public boolean add(User user) {
         boolean result = false;
         if (Objects.isNull(findById(user))) {
-            this.persistence.add(new User(user.getName(), user.getLogin(), user.getEmail(), user.getCreateDate()));
+            this.persistence.add(user);
             result = true;
         }
         return result;

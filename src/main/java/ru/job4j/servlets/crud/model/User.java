@@ -14,8 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class User {
 
-    private final static AtomicInteger NEXT_ID = new AtomicInteger();
-    private final Integer id;
+    private Integer id;
     private String name;
     private String login;
     private String email;
@@ -33,12 +32,20 @@ public class User {
         this(id, name, login, email, new Date());
     }
 
-    public User(String name, String login, String email, Date createDate) {
-        this(NEXT_ID.getAndIncrement(), name, login, email, createDate);
+    public User(String name, String login, String email) {
+        this(null, name, login, email, new Date());
+    }
+
+    public User(Integer id) {
+        this(id, null, null, null, new Date());
     }
 
     public Integer getId() {
         return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getName() {
