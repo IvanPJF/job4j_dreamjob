@@ -14,12 +14,12 @@ public class UserUpdateServlet extends HttpServlet {
     private final ValidateService logic = ValidateService.getInstance();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html");
         String strId = req.getParameter("id");
         Integer id = Integer.parseInt(strId);
-        User user = this.logic.findById(new User(id, null, null, null));
-        req.setAttribute("id", user);
-        getServletContext().getRequestDispatcher("/edit.jsp").forward(req, resp);
+        User user = this.logic.findById(new User(id));
+        req.setAttribute("user", user);
+        req.getRequestDispatcher("/WEB-INF/views/UserEdit.jsp").forward(req, resp);
     }
 }
