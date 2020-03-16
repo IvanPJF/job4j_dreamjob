@@ -16,8 +16,8 @@ import java.util.Objects;
  */
 public class ValidateService {
 
-    private static final ValidateService INSTANCE = new ValidateService();
     private final IStore persistence = DBStore.getInstance();
+    private static final ValidateService INSTANCE = new ValidateService();
 
     private ValidateService() {
     }

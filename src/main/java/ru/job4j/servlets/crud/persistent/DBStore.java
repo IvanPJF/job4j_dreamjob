@@ -1,6 +1,9 @@
 package ru.job4j.servlets.crud.persistent;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import ru.job4j.servlets.crud.model.IRole;
+import ru.job4j.servlets.crud.model.IStoreRole;
+import ru.job4j.servlets.crud.model.StoreRoleMemory;
 import ru.job4j.servlets.crud.model.User;
 
 import java.io.IOException;
@@ -13,6 +16,7 @@ import java.util.Properties;
 
 public class DBStore implements IStore {
 
+    private static final IStoreRole STORE_ROLE = StoreRoleMemory.getInstance();
     private static final BasicDataSource SOURCE = new BasicDataSource();
     private static final DBStore INSTANCE = new DBStore();
     private static final String NAME_FILE_PROPERTIES = "app.properties";
@@ -37,16 +41,7 @@ public class DBStore implements IStore {
         SOURCE.setMaxIdle(Integer.parseInt(config.getProperty("max-idle")));
         SOURCE.setMaxOpenPreparedStatements(Integer.parseInt(config.getProperty("max-prepared-statements")));
         createTable();
-    }
-
-    private void createTable() {
-        try (Connection connection = SOURCE.getConnection()) {
-            Statement st = connection.createStatement();
-            st.execute("CREATE TABLE IF NOT EXISTS users "
-                    + "(id SERIAL PRIMARY KEY, name TEXT NOT NULL, login TEXT NOT NULL, email TEXT NOT NULL, create_date TIMESTAMP NOT NULL)");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        createUser();
     }
 
     public static DBStore getInstance() {
@@ -55,14 +50,12 @@ public class DBStore implements IStore {
 
     @Override
     public User add(User user) {
-        try (PreparedStatement pst = SOURCE.getConnection()
-                .prepareStatement("INSERT INTO users(name, login, email, create_date) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-            pst.setString(1, user.getName());
-            pst.setString(2, user.getLogin());
-            pst.setString(3, user.getEmail());
-            pst.setTimestamp(4, new Timestamp(user.getCreateDate().getTime()));
-            pst.execute();
-            try (ResultSet genKey = pst.getGeneratedKeys()) {
+        try (Connection con = SOURCE.getConnection();
+             PreparedStatement prst = con
+                     .prepareStatement("INSERT INTO users(name, login, email, create_date, password, role) VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            inputToPrepare(user, prst);
+            prst.execute();
+            try (ResultSet genKey = prst.getGeneratedKeys()) {
                 if (genKey.next()) {
                     user.setId(genKey.getInt("id"));
                 }
@@ -75,16 +68,13 @@ public class DBStore implements IStore {
 
     @Override
     public User update(User user) {
-        try (Connection connection = SOURCE.getConnection();
-             PreparedStatement pstm = connection
-                     .prepareStatement("UPDATE users SET name = ?, login = ?, email = ?, create_date = ? WHERE id = ?")) {
-            User oldUser = getUserById(connection, user.getId());
-            pstm.setString(1, user.getName());
-            pstm.setString(2, user.getLogin());
-            pstm.setString(3, user.getEmail());
-            pstm.setTimestamp(4, new Timestamp(user.getCreateDate().getTime()));
-            pstm.setInt(5, user.getId());
-            if (pstm.executeUpdate() == 1) {
+        try (Connection con = SOURCE.getConnection();
+             PreparedStatement prst = con
+                     .prepareStatement("UPDATE users SET name = ?, login = ?, email = ?, create_date = ?, password = ?, role = ? WHERE id = ?")) {
+            User oldUser = findById(user);
+            inputToPrepare(user, prst);
+            prst.setInt(7, user.getId());
+            if (prst.executeUpdate() == 1) {
                 return oldUser;
             }
         } catch (SQLException e) {
@@ -95,12 +85,12 @@ public class DBStore implements IStore {
 
     @Override
     public User delete(User user) {
-        try (Connection connection = SOURCE.getConnection();
-             PreparedStatement pstm = connection
+        try (Connection con = SOURCE.getConnection();
+             PreparedStatement prst = con
                      .prepareStatement("DELETE FROM users WHERE id = ?")) {
-            User oldUser = getUserById(connection, user.getId());
-            pstm.setInt(1, user.getId());
-            if (pstm.executeUpdate() == 1) {
+            User oldUser = findById(user);
+            prst.setInt(1, user.getId());
+            if (prst.executeUpdate() == 1) {
                 return oldUser;
             }
         } catch (SQLException e) {
@@ -112,15 +102,18 @@ public class DBStore implements IStore {
     @Override
     public Collection<User> findAll() {
         Collection<User> result = new ArrayList<>();
-        try (Statement st = SOURCE.getConnection().createStatement();
-             ResultSet rset = st.executeQuery("SELECT * FROM users")) {
-            while (rset.next()) {
+        try (Connection con = SOURCE.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT * FROM users ORDER BY id")) {
+            while (rs.next()) {
                 result.add(new User(
-                        rset.getInt("id"),
-                        rset.getString("name"),
-                        rset.getString("login"),
-                        rset.getString("email"),
-                        new Date(rset.getTimestamp("create_date").getTime()))
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("login"),
+                        rs.getString("email"),
+                        new Date(rs.getTimestamp("create_date").getTime()),
+                        rs.getString("password"),
+                        STORE_ROLE.getRole(rs.getString("role")))
                 );
             }
         } catch (SQLException e) {
@@ -131,33 +124,91 @@ public class DBStore implements IStore {
 
     @Override
     public User findById(User user) {
-        try (Connection connection = SOURCE.getConnection()) {
-            return getUserById(connection, user.getId());
+        try (Connection con = SOURCE.getConnection();
+             PreparedStatement prst = con
+                     .prepareStatement("SELECT * FROM users WHERE id = ?")) {
+            prst.setInt(1, user.getId());
+            return executePrepStatement(prst);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private User getUserById(Connection connection, Integer id) {
-        User userFromDB = null;
-        try (PreparedStatement pstmt = connection
-                .prepareStatement("SELECT * FROM users WHERE id = ?")) {
-            pstmt.setInt(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    userFromDB = new User(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getString("login"),
-                            rs.getString("email"),
-                            new Date(rs.getTimestamp("create_date").getTime())
-                    );
-                }
+    @Override
+    public User findByLogin(String login) {
+        try (Connection con = SOURCE.getConnection();
+             PreparedStatement prst = con
+                     .prepareStatement("SELECT * FROM users WHERE login = ?")) {
+            prst.setString(1, login);
+            return executePrepStatement(prst);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isCredential(String login, String password) {
+        try (Connection con = SOURCE.getConnection();
+             PreparedStatement prst = con
+                     .prepareStatement("SELECT * FROM users WHERE login = ? and password = ?")) {
+            prst.setString(1, login);
+            prst.setString(2, password);
+            try (ResultSet rs = prst.executeQuery()) {
+                return rs.next();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return userFromDB;
+        return false;
+    }
+
+    private void createTable() {
+        try (Connection con = SOURCE.getConnection();
+             Statement st = con.createStatement()) {
+            st.execute("CREATE TABLE IF NOT EXISTS users("
+                    + "id SERIAL PRIMARY KEY,"
+                    + "name TEXT NOT NULL,"
+                    + "login TEXT UNIQUE NOT NULL,"
+                    + "email TEXT NOT NULL,"
+                    + "create_date TIMESTAMP NOT NULL,"
+                    + "password TEXT NOT NULL,"
+                    + "role TEXT NOT NULL)");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createUser() {
+        if (findAll().isEmpty()) {
+            add(new User(null, "root", "root", "root@root", "root", STORE_ROLE.getRole(IRole.ADMIN)));
+        }
+    }
+
+    private User executePrepStatement(PreparedStatement prst) throws SQLException {
+        try (ResultSet rs = prst.executeQuery()) {
+            if (rs.next()) {
+                return new User(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("login"),
+                        rs.getString("email"),
+                        new Date(rs.getTimestamp("create_date").getTime()),
+                        rs.getString("password"),
+                        STORE_ROLE.getRole(rs.getString("role"))
+                );
+            }
+        }
+        return null;
+    }
+
+    private void inputToPrepare(User user, PreparedStatement prst) throws SQLException {
+        prst.setString(1, user.getName());
+        prst.setString(2, user.getLogin());
+        prst.setString(3, user.getEmail());
+        prst.setTimestamp(4, new Timestamp(user.getCreateDate().getTime()));
+        prst.setString(5, user.getPassword());
+        prst.setString(6, user.getRole().getName());
     }
 }

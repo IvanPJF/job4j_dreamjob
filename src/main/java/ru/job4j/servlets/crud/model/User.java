@@ -19,25 +19,26 @@ public class User {
     private String login;
     private String email;
     private Date createDate;
+    private String password;
+    private IRole role;
 
-    public User(Integer id, String name, String login, String email, Date createDate) {
+    public User(Integer id, String name, String login, String email,
+                Date createDate, String password, IRole role) {
         this.id = id;
         this.name = name;
         this.login = login;
         this.email = email;
         this.createDate = createDate;
+        this.password = password;
+        this.role = role;
     }
 
-    public User(Integer id, String name, String login, String email) {
-        this(id, name, login, email, new Date());
-    }
-
-    public User(String name, String login, String email) {
-        this(null, name, login, email, new Date());
+    public User(Integer id, String name, String login, String email, String password, IRole role) {
+        this(id, name, login, email, new Date(), password, role);
     }
 
     public User(Integer id) {
-        this(id, null, null, null, new Date());
+        this(id, null, null, null, new Date(), null, null);
     }
 
     public Integer getId() {
@@ -80,6 +81,18 @@ public class User {
         this.createDate = createDate;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public IRole getRole() {
+        return role;
+    }
+
+    public void setRole(IRole role) {
+        this.role = role;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -90,25 +103,24 @@ public class User {
         }
         User user = (User) o;
         return Objects.equals(id, user.id)
-                && Objects.equals(name, user.name)
-                && Objects.equals(login, user.login)
-                && Objects.equals(email, user.email)
-                && Objects.equals(createDate, user.createDate);
+                && Objects.equals(login, user.login);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, login, email, createDate);
+        return Objects.hash(id, login);
     }
 
     @Override
     public String toString() {
-        return new StringJoiner(" | ", "[ ", " ]")
-                .add(String.format("%-5.5s", this.id))
-                .add(String.format("%-20.20s", this.name))
-                .add(String.format("%-20.20s", this.login))
-                .add(String.format("%-20.20s", this.email))
-                .add(String.format("%-30.30s", this.createDate.toString()))
+        return new StringJoiner(", ", "User{", "}")
+                .add(String.format("id=%d", this.id))
+                .add(String.format("name=%s", this.name))
+                .add(String.format("login=%s", this.login))
+                .add(String.format("email=%s", this.email))
+                .add(String.format("createDate=%s", this.createDate.toString()))
+                .add(String.format("password=%s", this.password))
+                .add(String.format("role=%s", this.role.getName()))
                 .toString();
     }
 }

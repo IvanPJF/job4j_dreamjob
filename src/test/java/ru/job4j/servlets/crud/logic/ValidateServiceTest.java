@@ -1,7 +1,8 @@
 package ru.job4j.servlets.crud.logic;
 
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Test;
+import ru.job4j.servlets.crud.model.IRole;
 import ru.job4j.servlets.crud.model.User;
 
 import java.util.Collection;
@@ -11,9 +12,11 @@ import static org.hamcrest.Matchers.is;
 
 public class ValidateServiceTest {
 
-    @AfterClass
-    public static void clearValidateService() {
-        ValidateService logic = ValidateService.getInstance();
+    private static final IRole ADMIN = () -> "admin";
+    private final ValidateService logic = ValidateService.getInstance();
+
+    @After
+    public void clearclearDB() {
         Collection<User> users = logic.findAll();
         for (User user : users) {
             logic.delete(user);
@@ -22,8 +25,8 @@ public class ValidateServiceTest {
 
     @Test
     public void whenActionIsAddThenTrue() {
-        ValidateService logic = ValidateService.getInstance();
-        User user = new User("Oracle", "Java", "o@gmail.com");
+        User user = new User(null, "Oracle", "Java",
+                "o@gmail.com", "java", ADMIN);
         boolean result = logic.add(user);
         assertThat(result, is(true));
         assertThat(logic.findById(user), is(user));
@@ -31,10 +34,11 @@ public class ValidateServiceTest {
 
     @Test
     public void whenActionIsUpdateThenTrue() {
-        ValidateService logic = ValidateService.getInstance();
-        User addUser = new User("PSF", "Python", "psf@gmail.com");
+        User addUser = new User(null, "PSF", "Python",
+                "psf@gmail.com", "python", ADMIN);
         logic.add(addUser);
-        User updateUser = new User(addUser.getId(), "Oracle", "Java", "o@gmail.com");
+        User updateUser = new User(addUser.getId(), "Oracle", "Java",
+                "o@gmail.com", "java", ADMIN);
         boolean result = logic.update(updateUser);
         assertThat(result, is(true));
         assertThat(logic.findById(updateUser), is(updateUser));
@@ -42,8 +46,8 @@ public class ValidateServiceTest {
 
     @Test
     public void whenActionIsUpdateAndOlderUserNotExistThenFalse() {
-        ValidateService logic = ValidateService.getInstance();
-        User updateUser = new User(Integer.MAX_VALUE, "Oracle", "Java", "o@gmail.com");
+        User updateUser = new User(Integer.MAX_VALUE, "Oracle", "Java",
+                "o@gmail.com", "java", ADMIN);
         boolean result = logic.update(updateUser);
         assertThat(result, is(false));
         assertThat(logic.findById(updateUser), is((User) null));
@@ -51,9 +55,10 @@ public class ValidateServiceTest {
 
     @Test
     public void whenActionIsUpdateAndOlderUserExistAndIdUserForUpdateNotMatchThenFalse() {
-        ValidateService logic = ValidateService.getInstance();
-        User addUser = new User("PSF", "Python", "psf@gmail.com");
-        User updateUser = new User(Integer.MAX_VALUE, "Oracle", "Java", "o@gmail.com");
+        User addUser = new User(null, "PSF", "Python",
+                "psf@gmail.com", "python", ADMIN);
+        User updateUser = new User(Integer.MAX_VALUE, "Oracle", "Java",
+                "o@gmail.com", "java", ADMIN);
         logic.add(addUser);
         boolean result = logic.update(updateUser);
         assertThat(result, is(false));
@@ -62,8 +67,8 @@ public class ValidateServiceTest {
 
     @Test
     public void whenActionIsDeleteAndUserExistAndIdMatchThenTrue() {
-        ValidateService logic = ValidateService.getInstance();
-        User user = new User("PSF", "Python", "psf@gmail.com");
+        User user = new User(null, "PSF", "Python",
+                "psf@gmail.com", "python", ADMIN);
         logic.add(user);
         boolean result = logic.delete(user);
         assertThat(result, is(true));
@@ -71,10 +76,10 @@ public class ValidateServiceTest {
 
     @Test
     public void whenActionIsDeleteAndUserExistAndIdNotMatchThenFalse() {
-        ValidateService logic = ValidateService.getInstance();
-        User addUser = new User("PSF", "Python", "psf@gmail.com");
+        User addUser = new User(null, "PSF", "Python",
+                "psf@gmail.com", "python", ADMIN);
         logic.add(addUser);
-        User deleteUser = new User(addUser.getId() + 1);
+        User deleteUser = new User(Integer.MAX_VALUE);
         boolean result = logic.delete(deleteUser);
         assertThat(result, is(false));
         assertThat(logic.findById(addUser), is(addUser));
@@ -82,7 +87,6 @@ public class ValidateServiceTest {
 
     @Test
     public void whenActionIsDeleteAndUserNotExistThenFalse() {
-        ValidateService logic = ValidateService.getInstance();
         User deleteUser = new User(Integer.MAX_VALUE);
         boolean result = logic.delete(deleteUser);
         assertThat(result, is(false));

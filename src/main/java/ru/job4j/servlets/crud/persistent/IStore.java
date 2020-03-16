@@ -22,4 +22,8 @@ public interface IStore {
     Collection<User> findAll();
 
     User findById(User user);
+
+    boolean isCredential(String login, String password);
+
+    User findByLogin(String login);
 }

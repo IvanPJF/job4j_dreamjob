@@ -1,4 +1,4 @@
-package ru.job4j.servlets.crud.serv;
+package ru.job4j.servlets.crud.controller;
 
 import ru.job4j.servlets.crud.logic.ValidateService;
 import ru.job4j.servlets.crud.model.User;
@@ -15,7 +15,6 @@ public class UserUpdateServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html");
         String strId = req.getParameter("id");
         Integer id = Integer.parseInt(strId);
         User user = this.logic.findById(new User(id));

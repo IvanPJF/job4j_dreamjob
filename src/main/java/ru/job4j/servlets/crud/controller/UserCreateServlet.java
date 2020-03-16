@@ -1,4 +1,4 @@
-package ru.job4j.servlets.crud.serv;
+package ru.job4j.servlets.crud.controller;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

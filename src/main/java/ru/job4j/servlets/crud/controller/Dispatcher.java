@@ -1,4 +1,4 @@
-package ru.job4j.servlets.crud.serv;
+package ru.job4j.servlets.crud.controller;
 
 import ru.job4j.servlets.crud.logic.ValidateService;
 import ru.job4j.servlets.crud.model.User;
