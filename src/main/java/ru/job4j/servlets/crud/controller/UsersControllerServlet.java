@@ -1,10 +1,10 @@
 package ru.job4j.servlets.crud.controller;
 
+import ru.job4j.servlets.crud.logic.IValidate;
 import ru.job4j.servlets.crud.logic.ValidateService;
 import ru.job4j.servlets.crud.model.IRole;
 import ru.job4j.servlets.crud.model.StoreRoleMemory;
 import ru.job4j.servlets.crud.model.User;
-import ru.job4j.servlets.crud.persistent.DBStore;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public class UsersControllerServlet extends HttpServlet {
 
-    private final ValidateService logic = ValidateService.getInstance();
+    private final IValidate logic = ValidateService.getInstance();
     private final Dispatcher dispatcher = Dispatcher.getInstance().init();
 
     @Override
@@ -46,7 +46,9 @@ public class UsersControllerServlet extends HttpServlet {
             HttpSession session = req.getSession();
             User sUser = (User) session.getAttribute("s_user");
             if (sUser.getLogin().equals(login)) {
-                session.setAttribute("s_user", DBStore.getInstance().findByLogin(login));
+                User user = new User(null);
+                user.setLogin(login);
+                session.setAttribute("s_user", this.logic.findByLogin(user));
             }
         }
     }

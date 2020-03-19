@@ -14,7 +14,7 @@ import java.util.Objects;
  * @version 0.1
  * @since 06.02.2020
  */
-public class ValidateService {
+public class ValidateService implements IValidate {
 
     private final IStore persistence = DBStore.getInstance();
     private static final ValidateService INSTANCE = new ValidateService();
@@ -22,10 +22,11 @@ public class ValidateService {
     private ValidateService() {
     }
 
-    public static ValidateService getInstance() {
+    public static IValidate getInstance() {
         return INSTANCE;
     }
 
+    @Override
     public boolean add(User user) {
         boolean result = false;
         if (Objects.isNull(findById(user))) {
@@ -35,6 +36,7 @@ public class ValidateService {
         return result;
     }
 
+    @Override
     public boolean update(User user) {
         boolean result = false;
         if (Objects.nonNull(findById(user))) {
@@ -44,6 +46,7 @@ public class ValidateService {
         return result;
     }
 
+    @Override
     public boolean delete(User user) {
         boolean result = false;
         if (Objects.nonNull(findById(user))) {
@@ -53,11 +56,23 @@ public class ValidateService {
         return result;
     }
 
+    @Override
     public Collection<User> findAll() {
         return this.persistence.findAll();
     }
 
+    @Override
     public User findById(User user) {
         return Objects.nonNull(user.getId()) ? this.persistence.findById(user) : null;
+    }
+
+    @Override
+    public User findByLogin(User user) {
+        return Objects.nonNull(user) ? this.persistence.findByLogin(user.getLogin()) : null;
+    }
+
+    @Override
+    public boolean isCredential(String login, String password) {
+        return this.persistence.isCredential(login, password);
     }
 }
