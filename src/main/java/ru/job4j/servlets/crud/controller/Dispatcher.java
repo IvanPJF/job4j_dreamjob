@@ -1,6 +1,6 @@
 package ru.job4j.servlets.crud.controller;
 
-import ru.job4j.servlets.crud.logic.ValidateService;
+import ru.job4j.servlets.crud.logic.IValidate;
 import ru.job4j.servlets.crud.model.User;
 
 import java.util.HashMap;
@@ -19,7 +19,7 @@ import java.util.function.BiFunction;
  */
 public class Dispatcher {
 
-    private final Map<String, BiFunction<ValidateService, User, Boolean>> map = new HashMap<>();
+    private final Map<String, BiFunction<IValidate, User, Boolean>> map = new HashMap<>();
     private static final Dispatcher DISPATCHER = new Dispatcher();
 
     private Dispatcher() {
@@ -30,18 +30,18 @@ public class Dispatcher {
     }
 
     public Dispatcher init() {
-        load("add", ValidateService::add);
-        load("update", ValidateService::update);
-        load("delete", ValidateService::delete);
+        load("add", IValidate::add);
+        load("update", IValidate::update);
+        load("delete", IValidate::delete);
         return this;
     }
 
-    public void load(String action, BiFunction<ValidateService, User, Boolean> service) {
+    public void load(String action, BiFunction<IValidate, User, Boolean> service) {
         this.map.put(action, service);
     }
 
-    public boolean send(String action, ValidateService logic, User user) {
-        BiFunction<ValidateService, User, Boolean> biFunction = this.map.get(action);
+    public boolean send(String action, IValidate logic, User user) {
+        BiFunction<IValidate, User, Boolean> biFunction = this.map.get(action);
         if (Objects.isNull(biFunction)) {
             throw new NoSuchElementException("No action found.");
         }

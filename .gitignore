@@ -72,3 +72,5 @@ jrebel.lic
 build
 .gradle
 *.pid
+
+/out/

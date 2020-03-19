@@ -120,7 +120,7 @@ public class User {
                 .add(String.format("email=%s", this.email))
                 .add(String.format("createDate=%s", this.createDate.toString()))
                 .add(String.format("password=%s", this.password))
-                .add(String.format("role=%s", this.role.getName()))
+                .add(String.format("role=%s", Objects.nonNull(this.role) ? this.role.getName() : null))
                 .toString();
     }
 }

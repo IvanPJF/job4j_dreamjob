@@ -1,5 +1,6 @@
 package ru.job4j.servlets.crud.controller;
 
+import ru.job4j.servlets.crud.logic.IValidate;
 import ru.job4j.servlets.crud.logic.ValidateService;
 import ru.job4j.servlets.crud.model.User;
 
@@ -11,7 +12,7 @@ import java.io.IOException;
 
 public class UserUpdateServlet extends HttpServlet {
 
-    private final ValidateService logic = ValidateService.getInstance();
+    private final IValidate logic = ValidateService.getInstance();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

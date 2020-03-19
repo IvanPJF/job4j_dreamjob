@@ -2,6 +2,7 @@ package ru.job4j.servlets.crud.controller;
 
 import org.junit.After;
 import org.junit.Test;
+import ru.job4j.servlets.crud.logic.IValidate;
 import ru.job4j.servlets.crud.logic.ValidateService;
 import ru.job4j.servlets.crud.model.User;
 
@@ -13,7 +14,7 @@ import static org.hamcrest.Matchers.is;
 
 public class DispatcherTest {
 
-    private final ValidateService logic = ValidateService.getInstance();
+    private final IValidate logic = ValidateService.getInstance();
 
     @After
     public void clearDB() {

@@ -13,10 +13,10 @@ import static org.hamcrest.Matchers.is;
 public class ValidateServiceTest {
 
     private static final IRole ADMIN = () -> "admin";
-    private final ValidateService logic = ValidateService.getInstance();
+    private final IValidate logic = ValidateService.getInstance();
 
     @After
-    public void clearclearDB() {
+    public void clearDB() {
         Collection<User> users = logic.findAll();
         for (User user : users) {
             logic.delete(user);
