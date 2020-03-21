@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        function validate() {
+            var arr = [$('#name'), $('#surname'), $('#description')];
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i].val() === '') {
+                    alert(arr[i].attr('title'));
+                    return false;
+                }
+            }
+            return true;
+        }
+    </script>
 </head>
 <body>
 
@@ -18,7 +30,8 @@
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
                     <label for="name">Name:</label>
-                    <input type="text" class="form-control" id="name" placeholder="Enter name" name="name">
+                    <input type="text" class="form-control" id="name"
+                           placeholder="Enter name" name="name" title="Enter user name">
                 </div>
                 <div class="col-md-4"></div>
             </div>
@@ -26,7 +39,8 @@
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
                     <label for="surname">Surname:</label>
-                    <input type="text" class="form-control" id="surname" placeholder="Enter surname" name="surname">
+                    <input type="text" class="form-control" id="surname"
+                           placeholder="Enter surname" name="surname" title="Enter user surname">
                 </div>
                 <div class="col-md-4"></div>
             </div>
@@ -34,7 +48,7 @@
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
                     <div class="radio">
-                        <label class="radio"><input type="radio" name="radio" value="male" checked>Male</label>
+                        <label><input type="radio" name="radio" value="male" checked>Male</label>
                     </div>
                     <div class="radio">
                         <label><input type="radio" name="radio" value="female">Female</label>
@@ -46,14 +60,17 @@
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
                     <label for="description">Description:</label>
-                    <textarea class="form-control" rows="3" id="description"></textarea>
+                    <textarea class="form-control" rows="3" id="description"
+                              placeholder="Enter description" title="Enter user description"></textarea>
                 </div>
                 <div class="col-md-4"></div>
             </div>
             <div class="row">
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
-                    <button type="submit" class="btn btn-default">Submit</button>
+                    <button type="button" class="btn btn-default"
+                            onclick="return validate();">Submit
+                    </button>
                 </div>
                 <div class="col-md-4"></div>
             </div>
