@@ -18,6 +18,19 @@
             }
             return true;
         }
+
+        function addRow() {
+            if (validate()) {
+                $('#table tr:last').after(
+                    '<tr>'
+                    + '<td>' + $('#name').val() + '</td>'
+                    + '<td>' + $('#surname').val() + '</td>'
+                    + '<td>' + $('input[name=radio]:checked').val() + '</td>'
+                    + '<td>' + $('#description').val() + '</td>'
+                    + '</tr>'
+                )
+            }
+        }
     </script>
 </head>
 <body>
@@ -69,7 +82,7 @@
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
                     <button type="button" class="btn btn-default"
-                            onclick="return validate();">Submit
+                            onclick="addRow();">Submit
                     </button>
                 </div>
                 <div class="col-md-4"></div>
@@ -78,7 +91,7 @@
     </div>
     <div class="table-responsive">
         <h3>List of workers</h3>
-        <table class="table">
+        <table class="table" id="table">
             <thead>
             <tr>
                 <th>Name</th>
@@ -88,18 +101,6 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>Phillip</td>
-                <td>Fry</td>
-                <td>Male</td>
-                <td>Worker</td>
-            </tr>
-            <tr>
-                <td>Emy</td>
-                <td>Wong</td>
-                <td>Female</td>
-                <td>Rich</td>
-            </tr>
             </tbody>
         </table>
     </div>
