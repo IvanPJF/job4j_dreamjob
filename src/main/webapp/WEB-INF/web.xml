@@ -13,6 +13,10 @@
         <url-pattern>*</url-pattern>
     </filter-mapping>
 
+    <welcome-file-list>
+        <welcome-file>users</welcome-file>
+    </welcome-file-list>
+
     <servlet>
         <servlet-name>UsersControllerServlet</servlet-name>
         <servlet-class>ru.job4j.servlets.crud.controller.UsersControllerServlet</servlet-class>
@@ -20,7 +24,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>UsersControllerServlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/users</url-pattern>
     </servlet-mapping>
     <servlet>
         <servlet-name>UserCreateServlet</servlet-name>
@@ -58,5 +62,14 @@
     <servlet-mapping>
         <servlet-name>Signout</servlet-name>
         <url-pattern>/signout</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>Greeting</servlet-name>
+        <servlet-class>ru.job4j.servlets.ajax.GreetingServlet</servlet-class>
+        <load-on-startup>5</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Greeting</servlet-name>
+        <url-pattern>/greet</url-pattern>
     </servlet-mapping>
 </web-app>
