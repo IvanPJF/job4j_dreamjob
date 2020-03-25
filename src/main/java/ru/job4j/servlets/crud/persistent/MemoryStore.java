@@ -3,7 +3,6 @@ package ru.job4j.servlets.crud.persistent;
 import ru.job4j.servlets.crud.model.User;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;

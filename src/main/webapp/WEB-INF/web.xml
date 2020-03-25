@@ -72,4 +72,13 @@
         <servlet-name>Greeting</servlet-name>
         <url-pattern>/greet</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>Location</servlet-name>
+        <servlet-class>ru.job4j.servlets.crud.controller.LocationController</servlet-class>
+        <load-on-startup>5</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Location</servlet-name>
+        <url-pattern>/location</url-pattern>
+    </servlet-mapping>
 </web-app>

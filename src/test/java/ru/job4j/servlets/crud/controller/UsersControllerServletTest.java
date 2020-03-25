@@ -40,9 +40,11 @@ public class UsersControllerServletTest {
     @Test
     public void whenUpdateUserThenStoreUpdateIt() throws IOException {
         IValidate validate = new ValidateStub();
-        User userAdd = new User(null, "Ivan", null, null, null, null);
+        User userAdd = new User(null);
+        userAdd.setName("Ivan");
         validate.add(userAdd);
-        User userUpdate = new User(userAdd.getId(), "Pavel", "", "", "", () -> "");
+        User userUpdate = new User(userAdd.getId());
+        userUpdate.setName("Pavel");
         PowerMockito.mockStatic(ValidateService.class);
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
@@ -60,14 +62,18 @@ public class UsersControllerServletTest {
     @Test
     public void whenDeleteUserThenStoreNotIt() throws IOException {
         IValidate validate = new ValidateStub();
-        User userAdd = new User(null, "Ivan", null, null, null, null);
+        User userAdd = new User(null);
+        userAdd.setName("Ivan");
         validate.add(userAdd);
         PowerMockito.mockStatic(ValidateService.class);
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
         when(ValidateService.getInstance()).thenReturn(validate);
         when(req.getParameter("action")).thenReturn("delete");
         when(req.getParameter("id")).thenReturn(String.valueOf(userAdd.getId()));
+        when(req.getSession()).thenReturn(session);
+        when(session.getAttribute("s_user")).thenReturn(userAdd);
         assertThat(validate.findAll().isEmpty(), is(false));
         new UsersControllerServlet().doPost(req, resp);
         assertThat(validate.findAll().isEmpty(), is(true));

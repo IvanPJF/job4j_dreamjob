@@ -92,6 +92,12 @@
         <module name="TodoComment"/>
         <module name="UpperEll"/>
 
+        <!-- Make the @SuppressWarnings annotations available to Checkstyle -->
+        <module name="SuppressWarningsHolder" />
+
     </module>
+
+    <!-- Filter out Checkstyle warnings that have been suppressed with the @SuppressWarnings annotation -->
+    <module name="SuppressWarningsFilter" />
 
 </module>

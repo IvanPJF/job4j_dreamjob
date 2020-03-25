@@ -3,7 +3,6 @@ package ru.job4j.servlets.crud.model;
 import java.util.Date;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Class model.
@@ -21,9 +20,12 @@ public class User {
     private Date createDate;
     private String password;
     private IRole role;
+    private Country country;
+    private City city;
 
+    @SuppressWarnings("checkstyle:parameternumber")
     public User(Integer id, String name, String login, String email,
-                Date createDate, String password, IRole role) {
+                Date createDate, String password, IRole role, Country country, City city) {
         this.id = id;
         this.name = name;
         this.login = login;
@@ -31,14 +33,18 @@ public class User {
         this.createDate = createDate;
         this.password = password;
         this.role = role;
+        this.country = country;
+        this.city = city;
     }
 
-    public User(Integer id, String name, String login, String email, String password, IRole role) {
-        this(id, name, login, email, new Date(), password, role);
+    @SuppressWarnings("checkstyle:parameternumber")
+    public User(Integer id, String name, String login, String email,
+                String password, IRole role, Country country, City city) {
+        this(id, name, login, email, new Date(), password, role, country, city);
     }
 
     public User(Integer id) {
-        this(id, null, null, null, new Date(), null, null);
+        this(id, null, null, null, new Date(), null, null, null, null);
     }
 
     public Integer getId() {
@@ -91,6 +97,22 @@ public class User {
 
     public void setRole(IRole role) {
         this.role = role;
+    }
+
+    public Country getCountry() {
+        return country;
+    }
+
+    public void setCountry(Country country) {
+        this.country = country;
+    }
+
+    public City getCity() {
+        return city;
+    }
+
+    public void setCity(City city) {
+        this.city = city;
     }
 
     @Override

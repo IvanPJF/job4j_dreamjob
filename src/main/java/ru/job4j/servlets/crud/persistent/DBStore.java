@@ -1,50 +1,23 @@
 package ru.job4j.servlets.crud.persistent;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import ru.job4j.servlets.crud.model.IRole;
-import ru.job4j.servlets.crud.model.IStoreRole;
-import ru.job4j.servlets.crud.model.StoreRoleMemory;
-import ru.job4j.servlets.crud.model.User;
+import ru.job4j.servlets.crud.model.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Properties;
 
 public class DBStore implements IStore {
 
     private static final IStoreRole STORE_ROLE = StoreRoleMemory.getInstance();
-    private static final BasicDataSource SOURCE = new BasicDataSource();
+    private static final BasicDataSource SOURCE = ConnectionPool.getInstance().pool();
     private static final DBStore INSTANCE = new DBStore();
-    private static final String NAME_FILE_PROPERTIES = "app.properties";
-
-    private Properties loadProperties() {
-        Properties config = new Properties();
-        try (InputStream is = DBStore.class.getClassLoader().getResourceAsStream(NAME_FILE_PROPERTIES)) {
-            config.load(is);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return config;
-    }
 
     private DBStore() {
-        Properties config = loadProperties();
-        SOURCE.setDriverClassName(config.getProperty("driver-class-name"));
-        SOURCE.setUrl(config.getProperty("url"));
-        SOURCE.setUsername(config.getProperty("username"));
-        SOURCE.setPassword(config.getProperty("password"));
-        SOURCE.setMinIdle(Integer.parseInt(config.getProperty("min-idle")));
-        SOURCE.setMaxIdle(Integer.parseInt(config.getProperty("max-idle")));
-        SOURCE.setMaxOpenPreparedStatements(Integer.parseInt(config.getProperty("max-prepared-statements")));
-        createTable();
-        createUser();
     }
 
-    public static DBStore getInstance() {
+    public static IStore getInstance() {
         return INSTANCE;
     }
 
@@ -52,7 +25,10 @@ public class DBStore implements IStore {
     public User add(User user) {
         try (Connection con = SOURCE.getConnection();
              PreparedStatement prst = con
-                     .prepareStatement("INSERT INTO users(name, login, email, create_date, password, role) VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                     .prepareStatement("INSERT INTO users"
+                                     + " (name, login, email, create_date, password, role, cities_id)"
+                                     + " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                             Statement.RETURN_GENERATED_KEYS)) {
             inputToPrepare(user, prst);
             prst.execute();
             try (ResultSet genKey = prst.getGeneratedKeys()) {
@@ -70,10 +46,13 @@ public class DBStore implements IStore {
     public User update(User user) {
         try (Connection con = SOURCE.getConnection();
              PreparedStatement prst = con
-                     .prepareStatement("UPDATE users SET name = ?, login = ?, email = ?, create_date = ?, password = ?, role = ? WHERE id = ?")) {
+                     .prepareStatement("UPDATE users"
+                             + " SET name = ?, login = ?, email = ?, create_date = ?,"
+                             + " password = ?, role = ?, cities_id = ?"
+                             + " WHERE id = ?")) {
             User oldUser = findById(user);
             inputToPrepare(user, prst);
-            prst.setInt(7, user.getId());
+            prst.setInt(8, user.getId());
             if (prst.executeUpdate() == 1) {
                 return oldUser;
             }
@@ -104,17 +83,15 @@ public class DBStore implements IStore {
         Collection<User> result = new ArrayList<>();
         try (Connection con = SOURCE.getConnection();
              Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM users ORDER BY id")) {
+             ResultSet rs = st.executeQuery(
+                     "SELECT u.id user_id, u.name, u.login, u.email, u.create_date,"
+                             + " u.password, u.role, ci.id city_id, ci.name city, co.id country_id, co.name country"
+                             + " FROM users u"
+                             + " LEFT JOIN cities ci ON u.cities_id = ci.id"
+                             + " LEFT JOIN countries co ON ci.countries_id = co.id"
+                             + " ORDER BY u.id")) {
             while (rs.next()) {
-                result.add(new User(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("login"),
-                        rs.getString("email"),
-                        new Date(rs.getTimestamp("create_date").getTime()),
-                        rs.getString("password"),
-                        STORE_ROLE.getRole(rs.getString("role")))
-                );
+                result.add(buildUser(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -126,7 +103,13 @@ public class DBStore implements IStore {
     public User findById(User user) {
         try (Connection con = SOURCE.getConnection();
              PreparedStatement prst = con
-                     .prepareStatement("SELECT * FROM users WHERE id = ?")) {
+                     .prepareStatement(
+                             "SELECT u.id user_id, u.name, u.login, u.email, u.create_date,"
+                                     + " u.password, u.role, ci.id city_id, ci.name city, co.id country_id, co.name country"
+                                     + " FROM users u"
+                                     + " LEFT JOIN cities ci ON u.cities_id = ci.id"
+                                     + " LEFT JOIN countries co ON ci.countries_id = co.id"
+                                     + " WHERE u.id = ?")) {
             prst.setInt(1, user.getId());
             return executePrepStatement(prst);
         } catch (SQLException e) {
@@ -138,8 +121,13 @@ public class DBStore implements IStore {
     @Override
     public User findByLogin(String login) {
         try (Connection con = SOURCE.getConnection();
-             PreparedStatement prst = con
-                     .prepareStatement("SELECT * FROM users WHERE login = ?")) {
+             PreparedStatement prst = con.prepareStatement(
+                     "SELECT u.id user_id, u.name, u.login, u.email, u.create_date,"
+                             + " u.password, u.role, ci.id city_id, ci.name city, co.id country_id, co.name country"
+                             + " FROM users u"
+                             + " LEFT JOIN cities ci ON u.cities_id = ci.id"
+                             + " LEFT JOIN countries co ON ci.countries_id = co.id"
+                             + " WHERE u.login = ?")) {
             prst.setString(1, login);
             return executePrepStatement(prst);
         } catch (SQLException e) {
@@ -164,40 +152,24 @@ public class DBStore implements IStore {
         return false;
     }
 
-    private void createTable() {
-        try (Connection con = SOURCE.getConnection();
-             Statement st = con.createStatement()) {
-            st.execute("CREATE TABLE IF NOT EXISTS users("
-                    + "id SERIAL PRIMARY KEY,"
-                    + "name TEXT NOT NULL,"
-                    + "login TEXT UNIQUE NOT NULL,"
-                    + "email TEXT NOT NULL,"
-                    + "create_date TIMESTAMP NOT NULL,"
-                    + "password TEXT NOT NULL,"
-                    + "role TEXT NOT NULL)");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+    private User buildUser(ResultSet rs) throws SQLException {
+        return new User(
+                rs.getInt("user_id"),
+                rs.getString("name"),
+                rs.getString("login"),
+                rs.getString("email"),
+                new Date(rs.getTimestamp("create_date").getTime()),
+                rs.getString("password"),
+                STORE_ROLE.getRole(rs.getString("role")),
+                new Country(rs.getInt("country_id"), rs.getString("country")),
+                new City(rs.getInt("city_id"), rs.getString("city")));
 
-    private void createUser() {
-        if (findAll().isEmpty()) {
-            add(new User(null, "root", "root", "root@root", "root", STORE_ROLE.getRole(IRole.ADMIN)));
-        }
     }
 
     private User executePrepStatement(PreparedStatement prst) throws SQLException {
         try (ResultSet rs = prst.executeQuery()) {
             if (rs.next()) {
-                return new User(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("login"),
-                        rs.getString("email"),
-                        new Date(rs.getTimestamp("create_date").getTime()),
-                        rs.getString("password"),
-                        STORE_ROLE.getRole(rs.getString("role"))
-                );
+                return buildUser(rs);
             }
         }
         return null;
@@ -210,5 +182,6 @@ public class DBStore implements IStore {
         prst.setTimestamp(4, new Timestamp(user.getCreateDate().getTime()));
         prst.setString(5, user.getPassword());
         prst.setString(6, user.getRole().getName());
+        prst.setInt(7, user.getCity().getId());
     }
 }
